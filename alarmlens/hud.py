@@ -6,17 +6,19 @@ import math
 import tkinter as tk
 import tkinter.font as tkfont
 
-# palette shared by the apps
-BG = "#060a14"
-PANEL = "#0d1526"
-PANEL2 = "#111c33"
-LINE = "#1c2a44"
-CYAN = "#2ee6f5"
-VIOLET = "#9b7bff"
-TEXT = "#e6edf7"
-MUTED = "#8fa2bd"
-OK = "#46e0a0"
-WARN = "#f5b65a"
+# palette shared by the apps: emerald and champagne gold on deep forest black
+BG = "#04110c"
+PANEL = "#0a1f17"
+PANEL2 = "#0f2a20"
+LINE = "#1d3a2d"
+CYAN = "#3ddc97"     # primary accent (emerald); name kept so existing code keeps working
+VIOLET = "#d4b26a"   # secondary accent (champagne gold)
+GOLD = VIOLET
+EMERALD = CYAN
+TEXT = "#eef4ef"
+MUTED = "#9db3a6"
+OK = "#3ddc97"
+WARN = "#f0a64a"
 ERR = "#ff6b6b"
 
 
@@ -61,7 +63,7 @@ def fade_in(root, ms=320):
 class Core(tk.Canvas):
     """Animated orb. States: idle (slow breathing), think (spinning arcs), listen (pulsing red), offline (dim)."""
 
-    COLORS = {"idle": CYAN, "think": VIOLET, "listen": ERR, "offline": "#5a6b85", "ok": OK}
+    COLORS = {"idle": CYAN, "think": VIOLET, "listen": ERR, "offline": "#4f6b5c", "ok": OK}
 
     def __init__(self, parent, size=44, bg=BG):
         super().__init__(parent, width=size, height=size, bg=bg, highlightthickness=0, bd=0)
@@ -125,7 +127,7 @@ class GlowButton(tk.Label):
 
     def __init__(self, parent, text, command, font, primary=False, bg_parent=BG, padx=14, pady=7):
         self.base = CYAN if primary else PANEL2
-        self.hover = "#7df9ff" if primary else blend(PANEL2, CYAN, 0.28)
+        self.hover = "#8ff0c2" if primary else blend(PANEL2, CYAN, 0.22)
         fg = BG if primary else TEXT
         super().__init__(parent, text=text, bg=self.base, fg=fg, font=font, padx=padx, pady=pady, cursor="hand2")
         self.command, self.enabled, self._t, self._job = command, True, 0.0, None
@@ -135,7 +137,7 @@ class GlowButton(tk.Label):
 
     def _click(self, _e):
         if self.enabled and self.command:
-            self.configure(bg=CYAN if self.base != CYAN else "#b9fcff")
+            self.configure(bg=CYAN if self.base != CYAN else "#c9f7df")
             self.after(90, lambda: self.configure(bg=blend(self.base, self.hover, self._t)))
             self.command()
 

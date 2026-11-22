@@ -45,6 +45,7 @@ class AlarmLensApp:
         self.f_disp = hud.pick_font(root, "Bahnschrift", "Segoe UI Semibold", "DejaVu Sans")
         self.f_body = hud.pick_font(root, "Segoe UI", "Inter", "DejaVu Sans")
         self.f_mono = hud.pick_font(root, "Cascadia Mono", "Consolas", "DejaVu Sans Mono")
+        self.f_serif = hud.pick_font(root, "Constantia", "Georgia", "DejaVu Serif")
         self._build()
         root.after(60, self._poll)
 
@@ -57,8 +58,8 @@ class AlarmLensApp:
         self.core.pack(side="left")
         t = tk.Frame(head, bg=BG)
         t.pack(side="left", padx=(10, 0))
-        tk.Label(t, text="ALARMLENS", bg=BG, fg=FG, font=(self.f_disp, 20, "bold")).pack(anchor="w")
-        tk.Label(t, text="FIND THE ALARMS OVERLOADING YOUR OPERATORS", bg=BG, fg=MUTED,
+        tk.Label(t, text=" ".join("ALARMLENS"), bg=BG, fg=FG, font=(self.f_serif, 21)).pack(anchor="w")
+        tk.Label(t, text="FIND THE ALARMS OVERLOADING YOUR OPERATORS", bg=BG, fg=hud.GOLD,
                  font=(self.f_mono, 9)).pack(anchor="w")
         self.trace = hud.Trace(self.root, height=2)
         self.trace.pack(fill="x", padx=20)
@@ -115,7 +116,7 @@ class AlarmLensApp:
         self.out.pack(fill="both", expand=True)
         for k, c in STATUS_COLOR.items():
             self.out.tag_configure(k, foreground=c)
-        self.out.tag_configure("h", foreground=ACCENT, font=(self.f_mono, 10, "bold"))
+        self.out.tag_configure("h", foreground=hud.GOLD, font=(self.f_mono, 10, "bold"))
         self.out.tag_configure("m", foreground=MUTED)
 
     def _status(self, text, color=MUTED):
