@@ -61,4 +61,4 @@ pip install pytest
 python -m pytest
 ```
 
-Built by Chekri Gadhiraju, Senior Automation Engineer (GMP pharmaceutical manufacturing).
+Built by Chekri Gadhiraju (GMP pharmaceutical automation) · https://gchekri04-droid.github.io
