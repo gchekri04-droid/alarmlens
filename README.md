@@ -15,8 +15,13 @@ measuring the problem. This tool does that measurement in seconds.
 
 ## Quick start (Windows)
 1. Install Python 3 from python.org.
-2. Double-click **Run-AlarmLens.bat**. It sets itself up and opens a report on the sample data.
-3. To analyze your own export, drag a CSV file onto **Run-AlarmLens.bat**.
+2. Double-click **Run-AlarmLens.bat**. The first run sets everything up, then the AlarmLens window opens.
+3. Drop an alarm-log CSV onto the window (or click to choose one) and click **Analyze**.
+   Click **Try sample data** to see it work straight away.
+
+![AlarmLens window](docs/window.png)
+
+Drag-and-drop uses the small `tkinterdnd2` add-on. If it can't be installed, the window still works with the Choose button.
 
 Command line:
 ```

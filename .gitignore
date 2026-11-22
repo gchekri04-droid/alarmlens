@@ -5,3 +5,6 @@ __pycache__/
 # never commit real plant data
 data/
 *_real*.csv
+# generated reports (keep the published sample)
+*_report.html
+!sample/sample_report.html
