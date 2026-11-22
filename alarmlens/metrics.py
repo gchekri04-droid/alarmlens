@@ -31,6 +31,7 @@ class Analysis:
     stale: pd.DataFrame
     priority_mix: pd.Series
     floods: pd.DataFrame
+    response: dict = field(default_factory=dict)
     settings: dict = field(default_factory=dict)
 
 
@@ -89,6 +90,40 @@ def find_floods(per_10min, threshold=10):
     return df
 
 
+def operator_response(df):
+    """Time from each activation to the next acknowledgement of the same tag.
+
+    An acknowledgement only counts if it comes before that tag's next activation.
+    Returns a dict with overall stats and a per-tag table of the slowest responses.
+    """
+    act = df[df["state"] == "ACTIVE"][["time", "tag", "message"]].sort_values("time", kind="stable")
+    ack = df[df["state"] == "ACK"][["time", "tag"]].sort_values("time", kind="stable")
+    empty = {"has_acks": False, "median_s": None, "p90_s": None, "unacked_pct": None,
+             "slowest": pd.DataFrame(columns=["tag", "message", "median_min", "unacked", "activations"])}
+    if act.empty or ack.empty:
+        return empty
+    act = act.reset_index(drop=True)
+    act["next_active"] = act.groupby("tag")["time"].shift(-1)
+    m = pd.merge_asof(act, ack.rename(columns={"time": "ack_time"}), left_on="time", right_on="ack_time",
+                      by="tag", direction="forward")
+    late = m["next_active"].notna() & (m["ack_time"] >= m["next_active"])
+    m.loc[late, "ack_time"] = pd.NaT
+    m["ack_s"] = (m["ack_time"] - m["time"]).dt.total_seconds()
+    acked = m["ack_s"].dropna()
+    per_tag = (m.groupby("tag")
+               .agg(message=("message", "first"), median_s=("ack_s", "median"),
+                    unacked=("ack_s", lambda x: int(x.isna().sum())), activations=("ack_s", "size"))
+               .reset_index())
+    per_tag["median_min"] = (per_tag["median_s"] / 60).round(1)
+    slowest = (per_tag.sort_values(["median_s", "unacked"], ascending=False, na_position="first", kind="stable")
+               .head(10)[["tag", "message", "median_min", "unacked", "activations"]].reset_index(drop=True))
+    return {"has_acks": True,
+            "median_s": float(acked.median()) if len(acked) else None,
+            "p90_s": float(acked.quantile(0.9)) if len(acked) else None,
+            "unacked_pct": float(m["ack_s"].isna().mean() * 100),
+            "slowest": slowest}
+
+
 def analyze(df, flood_threshold=10, chatter_count=3, chatter_window_s=60, stale_hours=24):
     if df.empty:
         raise ValueError("The alarm log has no usable rows.")
@@ -142,6 +177,7 @@ def analyze(df, flood_threshold=10, chatter_count=3, chatter_window_s=60, stale_
             "~5% (typical mix ~80% low / 15% medium / 5% high)", _grade(high_pct, 7, 15)),
     ]
     return Analysis(start, end, n, kpis, per_10, top10, chattering, stale, mix, floods,
+                    response=operator_response(df),
                     settings={"distinct_tags": int(active["tag"].nunique()),
                               "flood_threshold": flood_threshold, "chatter_count": chatter_count,
                               "chatter_window_s": chatter_window_s, "stale_hours": stale_hours})

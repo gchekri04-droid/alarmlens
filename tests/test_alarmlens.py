@@ -83,3 +83,25 @@ def test_no_activations_raises():
 def test_html_escapes_tag_text():
     a = analyze(load_alarm_log(csv(["2026-01-01 00:00:00,<script>,x,Low,Came In"])))
     assert "<script>" not in render(a, [])
+
+
+def test_operator_response_times():
+    rows = [
+        "2026-01-01 00:00:00,A,a,Low,Came In",
+        "2026-01-01 00:01:00,A,a,Low,Acknowledged",      # 60 s
+        "2026-01-01 00:10:00,A,a,Low,Came In",
+        "2026-01-01 00:20:00,A,a,Low,Came In",           # previous never acked before this one
+        "2026-01-01 00:23:00,A,a,Low,Acknowledged",      # 180 s for the third
+        "2026-01-01 01:00:00,B,b,Low,Came In",           # never acked
+    ]
+    r = analyze(load_alarm_log(csv(rows))).response
+    assert r["has_acks"]
+    assert r["median_s"] == 120.0
+    assert round(r["unacked_pct"], 1) == 50.0
+    assert r["slowest"].iloc[0]["tag"] == "B"
+
+
+def test_no_acks_is_handled():
+    a = analyze(load_alarm_log(csv(["2026-01-01 00:00:00,T1,m,Low,Came In"])))
+    assert a.response["has_acks"] is False
+    assert "can't be measured" in render(a, [])

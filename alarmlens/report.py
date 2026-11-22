@@ -57,6 +57,25 @@ def _table(df, cols, headers):
     return f'<div class="tw"><table><thead><tr>{head}</tr></thead><tbody>{"".join(rows)}</tbody></table></div>'
 
 
+def _mins(sec):
+    return "–" if sec is None else (f"{sec:.0f} s" if sec < 120 else f"{sec / 60:.1f} min")
+
+
+def _response_section(r):
+    if not r.get("has_acks"):
+        return ('<section><h2>Operator response</h2><p class="none">No acknowledgement events in this log, '
+                'so response times can\'t be measured.</p></section>')
+    stats = (f'<ul class="mix"><li><span>Median time to acknowledge</span><b>{_mins(r["median_s"])}</b></li>'
+             f'<li><span>90% acknowledged within</span><b>{_mins(r["p90_s"])}</b></li>'
+             f'<li><span>Never acknowledged</span><b>{r["unacked_pct"]:.1f}%</b></li></ul>')
+    note = ('<p class="none" style="margin-top:10px">Slow or missing acknowledgements often point to alarms '
+            'operators have learned to ignore. Those are good rationalization candidates.</p>')
+    table = _table(r["slowest"], ["tag", "median_min", "unacked", "activations"],
+                   ["Tag", "Median min to ack", "Never acked", "Activations"])
+    return (f'<div class="two"><section><h2>Operator response</h2>{stats}{note}</section>'
+            f'<section><h2>Slowest to acknowledge</h2>{table}</section></div>')
+
+
 def render(a, recommendations, ai_text=None, ai_note=None, source_name="alarm log", sample=False):
     kpis = "".join(
         f'<div class="kpi {k.status}"><span class="kn">{_e(k.name)}</span><b>{_e(k.display)}</b>'
@@ -106,6 +125,7 @@ footer{{color:var(--mu);font-size:.8rem}}
 <div class="kpis">{kpis}</div>
 <section><h2>Alarms per 10 minutes</h2>{_chart(a.per_10min, a.settings["flood_threshold"])}</section>
 <section><h2>Recommended actions</h2><ol class="recs">{recs}</ol>{ai}</section>
+{_response_section(a.response)}
 <section><h2>Top 10 bad actors</h2>{_table(a.top10, ["tag","message","priority","count","share_pct"], ["Tag","Message","Priority","Activations","% of load"])}</section>
 <div class="two">
 <section><h2>Chattering alarms</h2>{_table(a.chattering, ["tag","bursts","activations"], ["Tag","Bursts","Activations"])}</section>

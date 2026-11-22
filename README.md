@@ -3,7 +3,7 @@
 **Find the alarms that are overloading your operators.** AlarmLens reads a SCADA alarm-log
 export (CSV), measures it against ISA-18.2 / EEMUA 191 style alarm-management benchmarks,
 and produces a one-page HTML report with the bad actors, chattering alarms, flood episodes,
-stale alarms and priority mix. It also gives prioritized recommendations, and an optional
+stale alarms, priority mix and operator response times. It also gives prioritized recommendations, and an optional
 summary written by a free local AI model.
 
 ![AlarmLens report](docs/report.png)
@@ -44,6 +44,11 @@ Export formats differ between SCADA products and versions, so check your export'
 These targets are paraphrased from commonly cited ISA-18.2 / EEMUA 191 guidance. Confirm them
 against the standards themselves and your site's alarm philosophy. Benchmarks are per operator
 position, so analyze one console's alarms at a time.
+
+**Operator response** (when the log has acknowledgement events): median and 90th-percentile time
+to acknowledge, the share of alarms never acknowledged, and the tags slowest to be acknowledged.
+Alarms that operators routinely ignore are strong rationalization candidates. No benchmark is applied
+here; compare against your own site targets.
 
 ## AI summary (optional, free, offline)
 If [Ollama](https://ollama.com) is running with `llama3.2`, AlarmLens asks it for a short

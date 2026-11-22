@@ -29,6 +29,10 @@ def rule_recommendations(a):
         recs.append(f"Review {len(a.stale)} stale alarm(s), active more than "
                     f"{a.settings['stale_hours']}h. Either the condition needs fixing or the alarm "
                     "should be shelved through a controlled, documented process.")
+    r = a.response
+    if r.get("has_acks") and r["unacked_pct"] and r["unacked_pct"] > 5:
+        recs.append(f"{r['unacked_pct']:.0f}% of alarms were never acknowledged. Review the slowest-to-acknowledge "
+                    "tags. If operators routinely ignore an alarm, it may not need to be an alarm.")
     if k["High-priority share"].status != "ok":
         recs.append("Re-check priority assignment. Too many high-priority alarms dilute the ones "
                     "that matter. Base priority on consequence severity and time to respond.")
